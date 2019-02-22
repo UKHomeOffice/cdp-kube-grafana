@@ -3,6 +3,7 @@ Simple deploy of grafana to ACP with mutual TLS to allow our large format wall b
 
 Based on https://github.com/UKHomeOffice/acp-client-cert-demo
 
+Buld the CA and certs
 ```bash
 # generate a CA
 openssl genrsa -out ca.key 2048
@@ -11,29 +12,11 @@ openssl req -x509 -new -nodes -key ca.key -days 10000 -out ca.crt -subj "/CN=exa
 ./generate.sh _CLIENT_NAME_
 ```
 
-`secret.yml` should look like:
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: grafana
-type: Opaque
-data:
-  awscreds: xxx
-  adminpassword: xxx
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: grafana-auth
-type: Opaque
-data:
-  ca.crt: {{.CA_CRT}}
-```
-
 Deploy:
 ```bash
 export CA_CRT=$(base64 ca.crt)
+export AWS_CREDENTIALS=$(base64 credentials)
+export GRAFANA_ADMIN_PASSWD=$(echo -n myadminpasword | base64)
 kd \ 
 -f secret.yml \
 -f service.yml \
