@@ -1,0 +1,57 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: grafana
+        service: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+      containers:
+        - name: grafana
+          image: docker-hub.digital.homeoffice.gov.uk/grafana/grafana:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 472
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 8000Mi
+            requests:
+              cpu: 500m
+              memory: 4000Mi
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana
+                  key: adminpassword
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+          volumeMounts:
+          - name: grafana-data
+            mountPath: /var/lib/grafana
+            readOnly: false
+          - name: aws-creds
+            mountPath: /usr/share/grafana/.aws
+            readOnly: true
+
+      volumes:
+      - name: grafana-data
+        persistentVolumeClaim:
+          claimName: grafana-data
+      - name: aws-creds
+        secret:
+          secretName: grafana
+          items:
+            - key: awscreds
+              path: credentials

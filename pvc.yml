@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: grafana-data
+spec:
+  storageClassName: gp2-encrypted
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 32Gi
+
